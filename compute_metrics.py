@@ -110,16 +110,31 @@ def compute_student_course_outcomes(
         after_course = ch[ch["event_date"] > comp_date]
 
         # условие: domain == target_domain ИЛИ уровень junior/middle
-        cond_domain = after_course.get("role_domain_nlp", after_course.get("domain"))
-        cond_level = after_course.get("role_level")
+        # аккуратно берём серии (а не None), иначе делаем маски из False
+        if "role_domain_nlp" in after_course.columns:
+            cond_domain = after_course["role_domain_nlp"]
+        elif "domain" in after_course.columns:
+            cond_domain = after_course["domain"]
+        else:
+            cond_domain = None
 
-        mask = pd.Series([True] * len(after_course), index=after_course.index)
+        if "role_level" in after_course.columns:
+            cond_level = after_course["role_level"]
+        else:
+            cond_level = None
 
         if cond_domain is not None:
-            mask = mask & (cond_domain == target_domain)
+            mask_domain = (cond_domain == target_domain)
+        else:
+            mask_domain = pd.Series(False, index=after_course.index)
 
         if cond_level is not None:
-            mask = mask | cond_level.isin(["junior", "middle"])
+            mask_level = cond_level.isin(["junior", "middle"])
+        else:
+            mask_level = pd.Series(False, index=after_course.index)
+
+        # итоговое условие: событие либо в нужном домене, либо junior/middle
+        mask = mask_domain | mask_level
 
         target_events = after_course[mask]
 
