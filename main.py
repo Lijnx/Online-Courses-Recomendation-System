@@ -16,7 +16,7 @@ dfs = compute_course_effectiveness_metrics(dfs)
 model, feat_cols = train_xgboost_ranker(dfs, goal_domain="data_analytics")
 
 # 2) LLM (Ollama)
-llm = OllamaClient(model="llama3.1")
+llm = OllamaClient(model="llama3.1:8b")
 
 # 3) интерактивный диалог -> профиль
 user_profile = collect_user_profile_dialog(llm)
